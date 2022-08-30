@@ -7,7 +7,5 @@ run:
 
 .PHONY: update
 update:
-	git push origin main
 	git push heroku main
 	heroku logs -t
-	

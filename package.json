@@ -1,5 +1,6 @@
 {
   "name": "msw-backend",
+  "type": "module",
   "version": "1.0.0",
   "description": "Minecraft Server Website Backend",
   "main": "app.js",
