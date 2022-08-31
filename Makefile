@@ -3,7 +3,7 @@ SHELL := /bin/zsh
 
 .PHONY: run
 run:
-	node -r dotenv/config app.js
+	nodemon -r dotenv/config app.js
 
 .PHONY: update
 update:
