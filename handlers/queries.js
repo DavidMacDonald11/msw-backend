@@ -5,9 +5,9 @@ async function statusCheck(req, res, next) {
         await Server.statusCheck()
 
         return res.status(200).json({
-            status: Server.status,
-            stats: Server.stats,
-            servers: Server.servers
+            servers: Server.servers,
+            state: Server.state,
+            status: Server.status
         })
     } catch(error) {
         return next({

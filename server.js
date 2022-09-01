@@ -1,5 +1,4 @@
 import {connectLocal} from "./ssh.js"
-import {asyncForEach} from "./misc.js"
 
 class Server {
     static status = {
@@ -8,8 +7,8 @@ class Server {
         failed: false
     }
 
-    static stats = {}
     static servers = []
+    static state = {}
 
     static async wake() {
         if(this.status.isOn) return
@@ -63,36 +62,13 @@ class Server {
         const appCommand = await connectLocal()
 
         if(!(await this.ping(appCommand))) return
-        await this.getStats(appCommand)
-        await this.checkServers(appCommand)
-        await this.findServers(appCommand)
-        await this.getServersStats(appCommand)
+        await this.getFullState(appCommand)
     }
 
-    static async getStats(appCommand) {
-        this.stats = JSON.parse(await appCommand("getStats"))
-    }
-
-    static async checkServers(appCommand) {
-        await appCommand("checkServers")
-    }
-
-    static async findServers(appCommand) {
-        const infos = JSON.parse(await appCommand("getServers"))
-        this.servers = infos.map(info => {return new Server(info)})
-    }
-
-    static async getServersStats(appCommand) {
-        await asyncForEach(this.servers, async server => {await server.getStats(appCommand)})
-    }
-
-    constructor(info) {
-        this.info = info
-        this.stats = {}
-    }
-
-    async getStats(appCommand) {
-        this.stats = JSON.parse(await appCommand(`getServerStats ${this.info.id}`))
+    static async getFullState(appCommand) {
+        const data = JSON.parse(await appCommand("getFullState")).data
+        this.servers = data.servers
+        this.state = data.state
     }
 }
 
