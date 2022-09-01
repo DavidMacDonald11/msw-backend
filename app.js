@@ -1,7 +1,7 @@
 import bodyParser from "body-parser"
 import cors from "cors"
 import express from "express"
-import log from "./log/index.js"
+import {log} from "./misc.js"
 import errorHandler from "./handlers/error.js"
 import { loginRequired, ensureAdmin } from "./middleware/auth.js"
 import authRoutes from "./routes/auth.js"
@@ -14,7 +14,7 @@ app.use(cors())
 app.use(bodyParser.json())
 app.use("/api/auth", authRoutes)
 app.use("/api/admin", ensureAdmin, adminRoutes)
-app.use("/api", loginRequired, queriesRoutes)
+app.use("/api/query", loginRequired, queriesRoutes)
 
 app.use((req, res, next) => {
     let error = new Error("Not Found")

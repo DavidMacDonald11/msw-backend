@@ -1,11 +1,8 @@
 import express from "express"
+import {statusCheck} from "../handlers/queries.js"
 
 const router = express.Router()
 
-router.get("/:which", (req, res) => {
-    res.send(JSON.stringify({
-        message: `Backend at ${req.params.which}`
-    }))
-})
+router.get("/status", statusCheck)
 
 export default router
