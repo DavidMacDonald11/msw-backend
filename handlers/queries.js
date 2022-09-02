@@ -17,4 +17,16 @@ async function statusCheck(req, res, next) {
     }
 }
 
-export {statusCheck}
+async function wake(req, res, next) {
+    try {
+        Server.wake()
+        return res.status(200).json({})
+    } catch(error) {
+        return next({
+            status: 500,
+            message: "Wake: Something went wrong"
+        })
+    }
+}
+
+export {statusCheck, wake}

@@ -1,4 +1,5 @@
-import {connectLocal} from "./ssh.js"
+import {connect, connectLocal} from "./ssh.js"
+import {log} from "./misc.js"
 
 class Server {
     static status = {
@@ -11,65 +12,63 @@ class Server {
     static state = {}
 
     static async wake() {
-        if(this.status.isOn) return
+        if(Server.status.isOn) return
+
+        function failCatch(error) {
+            log("WOL", error.message)
+            Server.status.waiting = false
+            Server.status.failed = true
+            return error
+        }
 
         try {
             const command = await connect(true)
             const result = await command(process.env.PATH_TO_PI_WOL, process.env.PI_WOL)
 
             log("WOL Command", result.stdout)
-            this.status.waiting = true
-            this.status.failed = false
+            Server.status.waiting = true
+            Server.status.failed = false
 
-            this.pingWake(0)
-        } catch(error) {
-            log("WOL", error)
-            this.status.waiting = false
-            this.status.failed = true
-        }
+            Server.pingWake(0, failCatch)
+        } catch(error) {throw failCatch(error)}
     }
 
-    static async ping(appCommand) {
+    static async ping() {
+        let appCommand = null
+
         try {
+            appCommand = await connectLocal()
             await appCommand("ping")
-            this.status.isOn = true
-        } catch(error) { this.status.isOn = false }
-        finally { return this.status.isOn }
+            Server.status.isOn = true
+        } catch(error) { Server.status.isOn = false }
+        finally { return appCommand }
     }
 
-    static async pingWake(attempts) {
-        if(attempts++ > 12) {
-            this.status.waiting = false
-            this.status.failed = true
+    static async pingWake(attempts, failCatch) {
+        if(attempts > 12) {failCatch({message: "The host did not wake up."})}
+        if(await Server.ping() === null) setTimeout(Server.pingWake, 10000, attempts + 1, failCatch)
 
-            log("WOL Ping", "The host did not wake up.")
-            return
-        }
-
-        await this.ping(await connectLocal())
-
-        if(!this.status.isOn) {
-            setTimeout(this.pingWake, 10000, attempts)
-            return
-        }
-
-        this.status.waiting = false;
+        Server.status.waiting = false
         log("WOL Ping", "The host woke up.")
-        setTimeout(this.statusCheck, 1000)
+        setTimeout(Server.statusCheck, 1000)
     }
 
     static async statusCheck() {
-        const appCommand = await connectLocal()
+        if(Server.status.waiting) return
 
-        if(!(await this.ping(appCommand))) return
-        await this.getFullState(appCommand)
+        const appCommand = await Server.ping()
+        if(appCommand === null) return
+
+        await Server.getFullState(appCommand)
     }
 
     static async getFullState(appCommand) {
         const data = JSON.parse(await appCommand("getFullState")).data
-        this.servers = data.servers
-        this.state = data.state
+        Server.servers = data.servers
+        Server.state = data.state
     }
+
+    //TODO add servers to database
 }
 
 export default Server
