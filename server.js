@@ -1,5 +1,6 @@
+import db from "./models/index.js"
 import {connect, connectLocal} from "./ssh.js"
-import {log} from "./misc.js"
+import {log, asyncForEach} from "./misc.js"
 
 class Server {
     static status = {
@@ -46,7 +47,9 @@ class Server {
 
     static async pingWake(attempts, failCatch) {
         if(attempts > 12) {failCatch({message: "The host did not wake up."})}
-        if(await Server.ping() === null) setTimeout(Server.pingWake, 10000, attempts + 1, failCatch)
+
+        if(await Server.ping() === null)
+            return setTimeout(Server.pingWake, 10000, attempts + 1, failCatch)
 
         Server.status.waiting = false
         log("WOL Ping", "The host woke up.")
@@ -57,9 +60,10 @@ class Server {
         if(Server.status.waiting) return
 
         const appCommand = await Server.ping()
-        if(appCommand === null) return
+        if(appCommand === null) return Server.takeDatabase()
 
         await Server.getFullState(appCommand)
+        await Server.retainDatabase()
     }
 
     static async getFullState(appCommand) {
@@ -68,7 +72,21 @@ class Server {
         Server.state = data.state
     }
 
-    //TODO add servers to database
+    static async retainDatabase() {
+        await asyncForEach(Server.servers, async server => {
+            const filter = {serverId: server.public.id}
+            const update = {serverId: server.public.id, public: server.public}
+            const options = {upsert: true}
+
+            await db.Server.findOneAndUpdate(filter, update, options)
+        })
+    }
+
+    static async takeDatabase() {
+        await asyncForEach(await db.Server.find({}), async server => {
+            Server.servers.push({public: server.public})
+        })
+    }
 }
 
 export default Server
