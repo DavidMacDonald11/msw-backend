@@ -5,7 +5,8 @@ SHELL := /bin/zsh
 run:
 	nodemon -r dotenv/config app.js
 
-.PHONY: update
-update:
-	git push heroku main
-	heroku logs -t
+.PHONY: deploy
+deploy:
+	git push origin main
+	vercel --prod
+	vercel logs https://davids-minecraft-server-api.vercel.app

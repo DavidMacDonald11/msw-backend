@@ -15,6 +15,7 @@ app.use(bodyParser.json())
 app.use("/api/auth", authRoutes)
 app.use("/api/admin", ensureAdmin, adminRoutes)
 app.use("/api/query", loginRequired, queriesRoutes)
+app.get("/api/test", (req, res) => {res.status(200).json({message: "OK"})})
 
 app.use((req, res, next) => {
     let error = new Error("Not Found")
@@ -27,3 +28,5 @@ app.use(errorHandler)
 app.listen(process.env.PORT, process.env.IP, () => {
     log("Express Init", `The express server has started on port ${process.env.PORT}.`)
 })
+
+export default app
