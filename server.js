@@ -5,6 +5,7 @@ import {log, asyncForEach} from "./misc.js"
 class Server {
     static status = {
         isOn: false,
+        anyOn: false,
         waiting: false,
         failed: false
     }
@@ -70,6 +71,8 @@ class Server {
         const data = JSON.parse(await appCommand("getFullState")).data
         Server.servers = data.servers
         Server.state = data.state
+
+        Server.status.anyOn = Server.servers.some(server => (server.state.isOn))
     }
 
     static async retainDatabase() {
@@ -83,9 +86,17 @@ class Server {
     }
 
     static async takeDatabase() {
+        Server.servers = []
+
         await asyncForEach(await db.Server.find({}), async server => {
-            Server.servers.push({public: server.public})
+            Server.servers.push({public: server.public, state: {isOn: false}})
         })
+    }
+
+    static async startServer(id) {
+        await Server.statusCheck()
+        const appCommand = await connectLocal()
+        await appCommand(`startServer ${id}`)
     }
 }
 
