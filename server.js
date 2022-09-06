@@ -107,7 +107,7 @@ class Server {
         await appCommand(`startServer ${id}`)
 
         const server = Server.findById(id)
-        server.state.loading = true
+        server.state = {...server.state, loading: true}
         log("Server Start", id)
     }
 }
