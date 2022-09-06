@@ -99,7 +99,7 @@ class Server {
 
     static findById(id) {
         let servers = Server.servers.map(server => (server.public.id == id ? server : undefined))
-        return servers.length > 0 ? servers[1] : null
+        return servers.length > 0 ? servers[0] : null
     }
 
     static async startServer(id) {
