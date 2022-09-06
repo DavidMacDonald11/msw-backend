@@ -42,15 +42,18 @@ class Server {
             appCommand = await connectLocal()
             await appCommand("ping")
             Server.status.isOn = true
+            Server.status.failed = false
         } catch(error) { Server.status.isOn = false }
         finally { return appCommand }
     }
 
     static async pingWake(attempts, failCatch) {
-        if(attempts > 12) {failCatch({message: "The host did not wake up."})}
+        if(attempts > 5) {return failCatch({message: "The host did not wake up."})}
 
-        if(await Server.ping() === null)
+        if(await Server.ping() === null) {
+            log("WOL Check", attempts)
             return setTimeout(Server.pingWake, 10000, attempts + 1, failCatch)
+        }
 
         Server.status.waiting = false
         log("WOL Ping", "The host woke up.")
@@ -65,6 +68,7 @@ class Server {
 
         await Server.getFullState(appCommand)
         await Server.retainDatabase()
+        return appCommand
     }
 
     static async getFullState(appCommand) {
@@ -93,10 +97,18 @@ class Server {
         })
     }
 
+    static findById(id) {
+        let servers = Server.servers.map(server => (server.public.id == id ? server : undefined))
+        return servers.length > 0 ? servers[1] : null
+    }
+
     static async startServer(id) {
-        await Server.statusCheck()
-        const appCommand = await connectLocal()
+        const appCommand = await Server.statusCheck()
         await appCommand(`startServer ${id}`)
+
+        const server = Server.findById(id)
+        server.state.loading = true
+        log("Server Start", id)
     }
 }
 

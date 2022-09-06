@@ -1,10 +1,10 @@
-function log(label, message, middle = undefined) {
+function log(label, message = undefined, middle = undefined) {
     console.log(label + " -- " + new Date().toLocaleString("en-US", { timeZone: "America/New_York" }))
 
-    if(typeof(middle) !== "undefined") console.log(middle)
-    if(typeof(message) !== "undefined") console.log(message)
+    if(middle !== undefined) console.log(middle)
+    if(message !== undefined) console.log(message)
 
-    console.log()
+    console.log("")
 }
 
 async function asyncForEach(array, callback) {

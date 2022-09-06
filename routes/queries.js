@@ -3,7 +3,7 @@ import {statusCheck, wake, startServer} from "../handlers/queries.js"
 
 const router = express.Router()
 
-router.get("/status", statusCheck)
+router.post("/status", statusCheck)
 router.post("/wake", wake)
 router.post("/start", startServer)
 
