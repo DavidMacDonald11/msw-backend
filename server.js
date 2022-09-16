@@ -11,7 +11,7 @@ class Server {
     }
 
     static servers = []
-    static state = {}
+    static hostState = {}
 
     static async wake() {
         if(Server.status.isOn) return
@@ -74,7 +74,7 @@ class Server {
     static async getFullState(appCommand) {
         const data = JSON.parse(await appCommand("getFullState")).data
         Server.servers = data.servers
-        Server.state = data.state
+        Server.hostState = data.hostState
 
         Server.status.anyOn = Server.servers.some(server => (server.state.isOn))
     }

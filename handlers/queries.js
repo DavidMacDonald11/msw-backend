@@ -6,7 +6,7 @@ async function statusCheck(req, res, next) {
 
         return res.status(200).json({
             servers: Server.servers,
-            state: Server.state,
+            hostState: Server.hostState,
             status: Server.status,
             ip: process.env.SSH_HOST
         })
