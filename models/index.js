@@ -3,7 +3,7 @@ import User from "./user.js"
 import Server from "./server.js"
 
 mongoose.Promise = Promise
-mongoose.connect(process.env.DB_URI, {
+mongoose.connect(process.env.MONGODB_URI, {
     keepAlive: true
 })
 

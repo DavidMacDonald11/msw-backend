@@ -1,0 +1,67 @@
+= Minecraft Server Website Backend
+
+:frontend-link: https://github.com/DavidMacDonald11/msw-frontend
+:local-api-link: https://github.com/DavidMacDonald11/msw-local-api
+:datapack-link: https://github.com/DavidMacDonald11/idle-timeout-datapack
+:wol-link: https://en.wikipedia.org/wiki/Wake-on-LAN
+:ssh-link: https://en.wikipedia.org/wiki/Secure_Shell
+:rcon-link: https://sage-advices.com/what-is-rcon-on-minecraft/
+:vercel-link: https://vercel.com
+:mongodb-link: https://www.mongodb.com/
+:integration-link: https://vercel.com/integrations/mongodbatlas
+:url-encode-link: https://www.mongodb.com/docs/atlas/troubleshoot-connection/#special-characters-in-connection-string-password
+:create-ssh-link: https://www.ssh.com/academy/ssh/keygen
+
+== The Minecraft Server Website Toolkit
+This is part of a three-part system designed to automate a minecraft server using a website. Also see:
+
+* {frontend-link}[The Website Frontend]
+* {local-api-link}[The Local API]
+* {datapack-link}[The Idle Timeout Datapack]
+
+This was developed for my own personal use. The system I've designed is very unique to my scenario, so it may not be easy to directly replicate. I also have no intention of implementing features that I will never actaully use. That said, it may still be worth asking for features, as I may find use in them.
+
+Otherwise, feel free to edit this project however you need to for it to suit your needs. If you would like pointers to help you do so, feel free to ask.
+
+== System Structure
+. The Frontend Server
+.. This is the website users will actually interact with.
+.. It will send http requests to the backend for authentication and data management.
+. The Backend Server
+.. Handles website authentication and remotely controls the host.
+.. The server uses {ssh-link}[SSH] to access a raspberry pi to use {wol-link}[WoL] to wake up the host machine. This is to save power. Compared to a complete host machine, a raspberry pi uses far less power. Using a raspberry pi allows WoL from outside of the local network.
+.. The server uses SSH to interact with the local API on the host.
+. The Local API
+.. Shuts down the host machine after 15 minutes of inactivity.
+.. Starts the Minecraft servers.
+.. Uses *local-network only* {rcon-link}[RCON] to send commands to the server. Allows the local api to keep track of players and time left.
+. The Idle Timeout Datapack
+.. Each server will have this datapack installed.
+.. If no one is online, the server will shutdown after 30 minutes.
+.. Allows the local api to keep track of players online.
+
+== Instructions
+. Start by studying this system and seeing if it can fit your needs.
+. Install {local-api-link}[the local API] onto your host machine and make sure it works as expected.
+. You will need to publically expose the host machine's SSH port.
+. {create-ssh-link}[Create an SSH key] and add the public key to the host machine. *Careful to not overwite your existing SSH keys*.
+. Create a free account on {vercel-link}[Vercel].
+.. Fork this project and create a new Vercel project using that repo, or install the Vercel command-line tool, download this repo, and run `vercel`.
+.. Add the following environment variables:
+    * `PATH_TO_LOCAL_APP` - the absolute location of the local api on the host machine.
+    * `PATH_TO_PI_WOL` - the absolute location of the raspberry pi's WoL script
+    * `PI_WOL` - the command to run the script inside of PATH_TO_PI_WOL
+    * `SSH_HOST` - the public IP of your host and raspberry pi
+    * `SSH_LOCAL_IP` - the local IP of your host
+    * `SSH_PORT` - the host's public SSH port
+    * `SSH_PI_PORT` - the raspberry pi's public SSH port
+    * `SSH_USER` - the host's username to SSH into
+    * `SSH_PI_USER` - the rasberry pi's username to SSH into
+    * `SECRET_KEY` - a secure password for encrypting authentication
+    * `SSH_PRIVATE_KEY` - the SSH private key
+    * `SSH_PASS` - the SSH password you set
+. Create a free account on {mongodb-link}[MongoDB] and create a free cluster.
+.. Go to {integration-link}[this page] to integrate MongoDB with the backend on Vercel.
+
+== Local Development
+You will need to create a `.env` file with the above environment variables. Run `npm install` and run the development server with `node -r dotenv/config app.js`. I recommend using `nodemon`.
